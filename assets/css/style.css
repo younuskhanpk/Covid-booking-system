@@ -1,0 +1,503 @@
+/* assets/css/style.css - Advanced Premium Theme (No JS Required) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+
+/* --- 1. Premium Design Tokens --- */
+:root {
+    /* Premium Color Palette */
+    --primary: #4f46e5;       /* Indigo 600 */
+    --primary-dark: #4338ca;
+    --primary-light: #e0e7ff; /* Indigo 100 */
+    --primary-glow: rgba(79, 70, 229, 0.4);
+    
+    --accent: #0ea5e9;        /* Light Blue 500 */
+    --accent-glow: rgba(14, 165, 233, 0.4);
+    
+    --secondary: #0f172a;     /* Deep Navy / Slate 900 */
+    --secondary-light: #1e293b;
+    
+    --bg-main: #f8fafc;       /* Slate 50 */
+    --surface: #ffffff;
+    
+    --text-primary: #0f172a;  /* Slate 900 */
+    --text-secondary: #475569;/* Slate 600 */
+    --text-muted: #94a3b8;    /* Slate 400 */
+    
+    --border: rgba(226, 232, 240, 0.8); /* Slate 200 with opacity */
+    --border-light: rgba(255, 255, 255, 0.2);
+    
+    /* Semantic */
+    --success: #10b981;
+    --success-bg: #ecfdf5;
+    --warning: #f59e0b;
+    --warning-bg: #fffbeb;
+    --danger: #ef4444;
+    --danger-bg: #fef2f2;
+
+    /* Typography */
+    --font-sans: 'Inter', sans-serif;
+    --font-heading: 'Outfit', sans-serif;
+
+    /* Premium Effects */
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+    --shadow-float: 0 20px 40px -5px rgba(79, 70, 229, 0.15), 0 10px 20px -5px rgba(0, 0, 0, 0.05);
+    
+    --radius-sm: 0.5rem;
+    --radius-md: 1rem;
+    --radius-lg: 1.5rem;
+    --radius-xl: 2rem;
+    --radius-full: 9999px;
+    
+    --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); /* Apple-like smooth transition */
+    --transition-slow: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --- 2. Global Reset & Keyframes --- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--bg-main);
+    color: var(--text-secondary);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+}
+
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 0 0 var(--primary-glow); }
+    70% { box-shadow: 0 0 0 15px rgba(79, 70, 229, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.animate-fade-up { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.floating { animation: float 6s ease-in-out infinite; }
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    color: var(--text-primary);
+    line-height: 1.1;
+    margin-bottom: 1rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+a { text-decoration: none; color: var(--primary); transition: var(--transition-fast); }
+img { max-width: 100%; height: auto; display: block; border-radius: var(--radius-md); }
+
+.container { width: 90%; max-width: 1200px; margin: 0 auto; }
+
+/* --- 3. Glassmorphic Header --- */
+.main-header {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: var(--transition);
+}
+
+.header-container { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 0; }
+
+.logo a {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    letter-spacing: -0.5px;
+}
+
+.medical-cross {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 2.2rem;
+    line-height: 1;
+}
+
+.nav-links { list-style: none; display: flex; gap: 2.5rem; align-items: center; }
+
+.nav-links a.nav-item {
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 1rem;
+    position: relative;
+    padding: 0.5rem 0;
+}
+
+/* Hover Underline Effect */
+.nav-links a.nav-item::after {
+    content: ''; position: absolute; width: 0; height: 2px;
+    bottom: 0; left: 0; background: var(--primary);
+    transition: var(--transition); border-radius: 2px;
+}
+.nav-links a.nav-item:hover { color: var(--primary); }
+.nav-links a.nav-item:hover::after { width: 100%; }
+
+/* Mobile Menu Logic (Pure CSS) */
+.menu-toggle-checkbox, .menu-toggle-label { display: none; }
+
+/* --- 4. Main Content Area --- */
+.main-content { flex: 1; padding: 0; }
+
+/* --- Premium Hero Section (Used in index.php) --- */
+.hero-section {
+    position: relative;
+    padding: 8rem 0 6rem;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+/* Abstract Background Shapes */
+.hero-bg-shape-1 {
+    position: absolute; top: -10%; right: -5%; width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(79,70,229,0.15) 0%, rgba(255,255,255,0) 70%);
+    border-radius: 50%; z-index: 0;
+}
+.hero-bg-shape-2 {
+    position: absolute; bottom: -10%; left: -5%; width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(14,165,233,0.1) 0%, rgba(255,255,255,0) 70%);
+    border-radius: 50%; z-index: 0;
+}
+
+.hero-grid {
+    display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 4rem;
+    align-items: center; position: relative; z-index: 1;
+}
+
+.hero-content h1 { font-size: 4rem; margin-bottom: 1.5rem; line-height: 1.05; }
+.hero-content p { font-size: 1.25rem; color: var(--text-secondary); margin-bottom: 2.5rem; max-width: 600px; }
+
+.hero-buttons { display: flex; gap: 1rem; }
+
+.hero-image-wrapper { position: relative; }
+.hero-image-wrapper img {
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-float);
+    transform: perspective(1000px) rotateY(-5deg);
+    transition: var(--transition-slow);
+}
+.hero-image-wrapper:hover img { transform: perspective(1000px) rotateY(0deg) translateY(-10px); }
+
+/* --- 5. Premium Footer --- */
+.main-footer {
+    background-color: var(--secondary);
+    color: var(--text-muted);
+    padding: 5rem 0 2rem;
+    margin-top: auto;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.footer-grid {
+    display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 4rem;
+    margin-bottom: 3rem;
+}
+
+.footer-logo {
+    font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800;
+    color: var(--surface); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;
+}
+
+.footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem; text-align: center; font-size: 0.9rem; }
+
+/* --- 6. Beautiful 3D Buttons --- */
+.btn-primary, .btn-secondary, .btn-outline, .btn-danger, .btn-success {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0.9rem 2rem; border-radius: var(--radius-full);
+    font-weight: 600; font-size: 1.05rem; cursor: pointer;
+    transition: var(--transition); border: 2px solid transparent;
+    text-align: center; font-family: var(--font-sans); position: relative; overflow: hidden;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: var(--surface) !important;
+    box-shadow: 0 10px 20px -10px var(--primary);
+    border: none;
+}
+
+.btn-primary::before {
+    content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: all 0.5s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px); box-shadow: 0 15px 25px -10px var(--primary);
+}
+.btn-primary:hover::before { left: 100%; }
+
+.btn-outline {
+    background-color: transparent; border-color: var(--border);
+    color: var(--text-primary) !important;
+}
+.btn-outline:hover {
+    border-color: var(--primary); color: var(--primary) !important;
+    background-color: var(--primary-light); transform: translateY(-2px);
+}
+
+/* --- 7. Glassmorphic & 3D Cards --- */
+.card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    padding: 2.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 5px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    opacity: 0; transition: var(--transition);
+}
+
+.card:hover { transform: translateY(-10px); box-shadow: var(--shadow-float); }
+.card:hover::before { opacity: 1; }
+
+.feature-icon {
+    width: 70px; height: 70px; border-radius: 20px;
+    background: linear-gradient(135deg, var(--primary-light), #ffffff);
+    color: var(--primary); display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; font-weight: 800; margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-md); border: 1px solid white; transition: var(--transition);
+}
+.card:hover .feature-icon { transform: scale(1.1) rotate(5deg); background: var(--primary); color: white; }
+
+/* --- 8. Premium Forms & Inputs --- */
+.form-group { margin-bottom: 1.5rem; position: relative; }
+
+.form-label {
+    display: block; margin-bottom: 0.5rem; font-weight: 600;
+    color: var(--text-primary); font-size: 0.95rem;
+}
+
+.form-control {
+    width: 100%; padding: 1rem 1.25rem;
+    border: 2px solid var(--border); border-radius: var(--radius-md);
+    font-family: var(--font-sans); font-size: 1rem; color: var(--text-primary);
+    background-color: var(--bg-main); transition: var(--transition);
+}
+
+.form-control:focus {
+    outline: none; border-color: var(--primary); background-color: var(--surface);
+    box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+/* --- 9. Tables --- */
+.table-responsive { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.table { width: 100%; border-collapse: collapse; background: var(--surface); text-align: left; }
+.table th, .table td { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); }
+.table th { background-color: var(--bg-main); color: var(--text-secondary); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.table tbody tr { transition: var(--transition-fast); }
+.table tbody tr:hover { background-color: var(--primary-light); }
+
+/* --- 10. Badges --- */
+.badge { display: inline-flex; align-items: center; padding: 0.4rem 1rem; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+.badge-pending { background-color: var(--warning-bg); color: #d97706; }
+.badge-approved { background-color: var(--success-bg); color: #059669; }
+.badge-rejected { background-color: var(--danger-bg); color: #dc2626; }
+
+/* --- 11. CSS-Only Modals & Tabs --- */
+.modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: var(--transition); z-index: 2000; }
+.modal:target { opacity: 1; pointer-events: auto; }
+.modal-content { background: var(--surface); padding: 3rem; border-radius: var(--radius-xl); width: 90%; max-width: 500px; position: relative; transform: scale(0.9) translateY(30px); transition: var(--transition); box-shadow: var(--shadow-float); }
+.modal:target .modal-content { transform: scale(1) translateY(0); }
+.modal-close { position: absolute; top: 1.5rem; right: 1.5rem; font-size: 2rem; color: var(--text-muted); line-height: 1; }
+
+/* --- 12. Splendid Split-Screen Auth Layout (No JS) --- */
+.auth-wrapper {
+    display: flex; min-height: 80vh; max-width: 1200px; margin: 4rem auto;
+    background: var(--surface); border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-float); overflow: hidden;
+}
+
+.auth-form-container { flex: 1; padding: 4rem 5rem; display: flex; flex-direction: column; justify-content: center; }
+
+.auth-image {
+    flex: 1; position: relative; overflow: hidden;
+    background: linear-gradient(-45deg, var(--primary), var(--accent), var(--primary-dark));
+    background-size: 400% 400%; animation: gradientShift 15s ease infinite;
+    display: none; align-items: center; justify-content: center; padding: 4rem; text-align: center; color: white;
+}
+.auth-image::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.1)" stroke-width="2" fill="none"/></svg>') repeat;
+    opacity: 0.5;
+}
+.auth-image-content { position: relative; z-index: 1; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 3rem; border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.2); }
+.auth-image h2 { color: white; font-size: 2.5rem; margin-bottom: 1rem; }
+.auth-image p { font-size: 1.1rem; opacity: 0.9; }
+
+@media (min-width: 992px) { .auth-image { display: flex; flex-direction: column; } }
+
+/* --- 13. Dashboards & Stats --- */
+.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-bottom: 3rem; }
+.stat-card {
+    background: var(--surface); border-radius: var(--radius-lg); padding: 2rem;
+    box-shadow: var(--shadow-md); position: relative; overflow: hidden; border: 1px solid var(--border);
+    transition: var(--transition);
+}
+.stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); border-color: var(--primary-light); }
+.stat-card h3 { font-size: 1rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+.stat-card .value { font-family: var(--font-heading); font-size: 3rem; font-weight: 900; color: var(--text-primary); line-height: 1; }
+.stat-card .icon-bg { position: absolute; right: -20px; bottom: -20px; font-size: 8rem; opacity: 0.03; color: var(--primary); transition: var(--transition); }
+.stat-card:hover .icon-bg { transform: scale(1.1) rotate(-10deg); opacity: 0.06; }
+
+/* --- Responsive logic --- */
+@media (max-width: 768px) {
+    .hero-grid { grid-template-columns: 1fr; text-align: center; }
+    .hero-buttons { justify-content: center; }
+    .hero-content h1 { font-size: 3rem; }
+    
+    .nav-links {
+        display: none; flex-direction: column; width: 100%; position: absolute;
+        top: 100%; left: 0; background: rgba(255, 255, 255, 0.98);
+        padding: 2rem; box-shadow: var(--shadow-md); backdrop-filter: blur(10px);
+        gap: 1.5rem; border-bottom: 1px solid var(--border);
+    }
+    .menu-toggle-label { display: block; width: 30px; height: 20px; position: relative; cursor: pointer; }
+    .menu-toggle-label span { display: block; width: 100%; height: 2px; background: var(--secondary); position: absolute; transition: var(--transition); }
+    .menu-toggle-label span:nth-child(1) { top: 0; }
+    .menu-toggle-label span:nth-child(2) { top: 9px; }
+    .menu-toggle-label span:nth-child(3) { top: 18px; }
+    
+    .menu-toggle-checkbox:checked + .menu-toggle-label span:nth-child(1) { transform: rotate(45deg); top: 9px; }
+    .menu-toggle-checkbox:checked + .menu-toggle-label span:nth-child(2) { opacity: 0; }
+    .menu-toggle-checkbox:checked + .menu-toggle-label span:nth-child(3) { transform: rotate(-45deg); top: 9px; }
+    .menu-toggle-checkbox:checked ~ .nav-links { display: flex; }
+    
+    .auth-wrapper { margin: 1rem auto; flex-direction: column; border-radius: var(--radius-lg); }
+    .auth-form-container { padding: 2rem 1.5rem; }
+    .footer-grid { grid-template-columns: 1fr; text-align: center; gap: 2rem; }
+}
+
+/* --- 14. Pure CSS Tabs --- */
+.tabs {
+    position: relative;
+    width: 100%;
+}
+.tab-input {
+    display: none;
+}
+.tab-label {
+    padding: 1rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-bottom: 2px solid var(--border);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+.tab-label:hover {
+    color: var(--primary);
+}
+.tab-content {
+    display: none;
+    padding: 2rem 0;
+    animation: fadeInUp 0.4s ease forwards;
+}
+
+/* Tab Logic */
+#tab_test:checked ~ .tab-labels label[for="tab_test"],
+#tab_vax:checked ~ .tab-labels label[for="tab_vax"],
+#tab_patient:checked ~ .tab-labels label[for="tab_patient"],
+#tab_hospital:checked ~ .tab-labels label[for="tab_hospital"] {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+#tab_test:checked ~ #content_test,
+#tab_vax:checked ~ #content_vax,
+#tab_patient:checked ~ #content_patient,
+#tab_hospital:checked ~ #content_hospital {
+    display: block;
+}
+
+/* --- 15. Scroll-linked reveals (no JS) + icon helpers --- */
+.reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(32px);
+    animation: revealScroll ease-out forwards;
+    animation-timeline: view();
+    animation-range: entry 0% cover 40%;
+}
+
+@supports not (animation-timeline: view()) {
+    .reveal-on-scroll {
+        opacity: 1;
+        transform: none;
+        animation: none;
+    }
+}
+
+@keyframes revealScroll {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.star-rating {
+    display: inline-flex;
+    gap: 2px;
+    align-items: center;
+}
+
+.star-rating svg {
+    flex-shrink: 0;
+}
+
+.svg-icon {
+    display: block;
+}
+
+/* Dashboard pages: avoid stacked sections visually colliding */
+.portal-page {
+    position: relative;
+    z-index: 0;
+    isolation: isolate;
+}
+
