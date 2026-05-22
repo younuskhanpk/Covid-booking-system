@@ -30,37 +30,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $role_id = role_id_from_name($role);
     
     try {
-        $conn->beginTransaction();
+        mysqli_begin_transaction($conn);
         
-        $chk = $conn->prepare('SELECT id FROM users WHERE email = :email');
-        $chk->execute([':email' => $email]);
+        $emailSafe = mysqli_real_escape_string($conn, $email);
+        $result = mysqli_query($conn, "SELECT id FROM users WHERE email = '$emailSafe'");
         
-        if ($chk->rowCount() > 0) {
+        if (mysqli_num_rows($result) > 0) {
             throw new Exception('Email is already registered.');
         }
         
+        $nameSafe = mysqli_real_escape_string($conn, $name);
+        $passwordSafe = mysqli_real_escape_string($conn, $password);
+        $roleSafe = mysqli_real_escape_string($conn, $role);
+        $phoneSafe = mysqli_real_escape_string($conn, $phone);
+        $addressSafe = mysqli_real_escape_string($conn, $address);
+
         if ($role === 'Hospital') {
             $hospital_name = trim($_POST['hospital_name']);
             $location = trim($_POST['location']);
             $license = trim($_POST['license_number']);
-            $stmt = $conn->prepare('INSERT INTO users (name, email, password, role, role_id, phone, address, hospital_name, location, license_number, facility_status) VALUES (:name, :email, :password, :role, :rid, :phone, :address, :hname, :loc, :lic, \'Pending\')');
-            $stmt->execute([
-                ':name' => $name, ':email' => $email, ':password' => $password, ':role' => $role,
-                ':rid' => $role_id, ':phone' => $phone, ':address' => $address,
-                ':hname' => $hospital_name, ':loc' => $location, ':lic' => $license,
-            ]);
+            $hnameSafe = mysqli_real_escape_string($conn, $hospital_name);
+            $locSafe = mysqli_real_escape_string($conn, $location);
+            $licSafe = mysqli_real_escape_string($conn, $license);
+            
+            $sql = "INSERT INTO users (name, email, password, role, role_id, phone, address, hospital_name, location, license_number, facility_status) VALUES ('$nameSafe', '$emailSafe', '$passwordSafe', '$roleSafe', $role_id, '$phoneSafe', '$addressSafe', '$hnameSafe', '$locSafe', '$licSafe', 'Pending')";
+            if (!mysqli_query($conn, $sql)) {
+                throw new Exception(mysqli_error($conn));
+            }
             $success = 'Hospital registration successful! Pending admin approval.';
         } else {
-            $stmt = $conn->prepare('INSERT INTO users (name, email, password, role, role_id, phone, address) VALUES (:name, :email, :password, :role, :rid, :phone, :address)');
-            $stmt->execute([':name' => $name, ':email' => $email, ':password' => $password, ':role' => $role, ':rid' => $role_id, ':phone' => $phone, ':address' => $address]);
+            $sql = "INSERT INTO users (name, email, password, role, role_id, phone, address) VALUES ('$nameSafe', '$emailSafe', '$passwordSafe', '$roleSafe', $role_id, '$phoneSafe', '$addressSafe')";
+            if (!mysqli_query($conn, $sql)) {
+                throw new Exception(mysqli_error($conn));
+            }
             $success = 'Registration successful! You can now log in.';
         }
         
-        $conn->commit();
+        mysqli_commit($conn);
     } catch (Exception $e) {
-        if ($conn->inTransaction()) {
-            $conn->rollBack();
-        }
+        mysqli_rollback($conn);
         $error = $e->getMessage();
     }
 }

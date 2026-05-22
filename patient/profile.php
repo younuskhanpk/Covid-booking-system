@@ -17,25 +17,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $phone = trim($_POST['phone']);
     $address = trim($_POST['address']);
     
-    try {
-        $stmt = $conn->prepare("UPDATE users SET name = :name, phone = :phone, address = :address WHERE id = :id");
-        $stmt->bindParam(':name', $name);
-        $stmt->bindParam(':phone', $phone);
-        $stmt->bindParam(':address', $address);
-        $stmt->execute();
-        
+    $nameSafe = mysqli_real_escape_string($conn, $name);
+    $phoneSafe = mysqli_real_escape_string($conn, $phone);
+    $addrSafe = mysqli_real_escape_string($conn, $address);
+    
+    if (mysqli_query($conn, "UPDATE users SET name = '$nameSafe', phone = '$phoneSafe', address = '$addrSafe' WHERE id = $user_id")) {
         $_SESSION['name'] = $name; // Update session name
         $message = "Profile updated successfully.";
-    } catch(PDOException $e) {
-        $message = "Error updating profile: " . $e->getMessage();
+    } else {
+        $message = "Error updating profile: " . mysqli_error($conn);
     }
 }
 
 // Fetch Current User Details
-$stmt = $conn->prepare("SELECT name, email, phone, address FROM users WHERE id = :uid");
-$stmt->bindParam(':uid', $user_id);
-$stmt->execute();
-$user = $stmt->fetch();
+$user = null;
+$res = mysqli_query($conn, "SELECT name, email, phone, address FROM users WHERE id = $user_id");
+if ($res) {
+    $user = mysqli_fetch_assoc($res);
+}
 
 include '../includes/header.php';
 ?>

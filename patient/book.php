@@ -7,7 +7,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'Patient') {
 
 require_once '../config/database.php';
 require_once '../includes/hospital_queries.php';
-require_once '../includes/slip_generator.php';
 
 $patient_id = (int) $_SESSION['user_id'];
 $hospital_ref = isset($_GET['hospital_id']) ? (int) $_GET['hospital_id'] : 0;
@@ -24,7 +23,14 @@ if (!$hospital) {
 }
 
 $store_hospital_id = (int) ($hospital['booking_hospital_id'] ?? $hospital['user_id'] ?? $hospital_ref);
-$vaccines = $conn->query("SELECT * FROM vaccines WHERE availability_status = 'Available'")->fetchAll();
+$vaccines = array();
+$vax_sql = "SELECT * FROM vaccines WHERE availability_status = 'Available'";
+$vax_result = mysqli_query($conn, $vax_sql);
+if ($vax_result) {
+    while ($vax_row = mysqli_fetch_assoc($vax_result)) {
+        $vaccines[] = $vax_row;
+    }
+}
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -45,42 +51,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (strtotime($date) < strtotime(date('Y-m-d'))) {
             $error = 'Appointment date cannot be in the past.';
         } else {
-            try {
-                $stmt = $conn->prepare('INSERT INTO appointments (patient_id, hospital_id, type, vaccine_id, appointment_date) VALUES (:pid, :hid, :type, :vid, :date)');
-                $stmt->execute([
-                    ':pid' => $patient_id,
-                    ':hid' => $store_hospital_id,
-                    ':type' => $type,
-                    ':vid' => $type === 'Vaccination' ? $vaccine_id : null,
-                    ':date' => $date,
-                ]);
-                $newId = (int) $conn->lastInsertId();
-
-                $hName = hospital_name_expr($conn);
-                $rowStmt = $conn->prepare("
-                    SELECT a.*, u.name AS patient_name, {$hName} AS hospital_name, v.vaccine_name
-                    FROM appointments a
-                    JOIN users u ON a.patient_id = u.id
-                    " . hospital_join_sql($conn, 'a') . "
-                    LEFT JOIN vaccines v ON a.vaccine_id = v.id
-                    WHERE a.id = :id
-                ");
-                $rowStmt->execute([':id' => $newId]);
-                $row = $rowStmt->fetch();
-                if ($row) {
-                    $path = generate_booking_slip_png($row, $newId);
-                    if ($path) {
-                        try {
-                            save_appointment_slip($conn, $newId, $path);
-                        } catch (Throwable $e) {
-                        }
-                    }
-                }
-
-                header('Location: slip.php?id=' . $newId);
+            $typeSafe = mysqli_real_escape_string($conn, $type);
+            $dateSafe = mysqli_real_escape_string($conn, $date);
+            $vaxIdVal = $type === 'Vaccination' ? $vaccine_id : 'NULL';
+            
+            $sql = "INSERT INTO appointments (patient_id, hospital_id, type, vaccine_id, appointment_date) VALUES ($patient_id, $store_hospital_id, '$typeSafe', $vaxIdVal, '$dateSafe')";
+            
+            if (mysqli_query($conn, $sql)) {
+                // Success: Redirect back to patient dashboard
+                header('Location: index.php?msg=booked');
                 exit;
-            } catch (PDOException $e) {
-                $error = 'Booking could not be saved. Please try again.';
+            } else {
+                $error = 'Booking could not be saved. Please try again. ' . mysqli_error($conn);
             }
         }
     }

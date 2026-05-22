@@ -22,17 +22,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email']);
     $password = $_POST['password'];
 
-    try {
-        $stmt = $conn->prepare('SELECT id, name, password, role, role_id, facility_status FROM users WHERE email = :email');
-        $stmt->execute([':email' => $email]);
-        $user = $stmt->fetch();
-    } catch (PDOException $e) {
-        $stmt = $conn->prepare('SELECT id, name, password, role FROM users WHERE email = :email');
-        $stmt->execute([':email' => $email]);
-        $user = $stmt->fetch();
-        if ($user) {
-            $user['role_id'] = role_id_from_name($user['role']);
-        }
+    $emailSafe = mysqli_real_escape_string($conn, $email);
+    $result = mysqli_query($conn, "SELECT id, name, password, role, role_id, facility_status FROM users WHERE email = '$emailSafe'");
+    if (!$result) {
+        $result = mysqli_query($conn, "SELECT id, name, password, role FROM users WHERE email = '$emailSafe'");
+    }
+    $user = $result ? mysqli_fetch_assoc($result) : null;
+    if ($user && !isset($user['role_id'])) {
+        $user['role_id'] = role_id_from_name($user['role']);
     }
 
     if ($user && password_verify($password, $user['password'])) {

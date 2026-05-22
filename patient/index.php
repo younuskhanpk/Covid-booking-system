@@ -9,33 +9,21 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'Patient') {
 require_once '../config/database.php';
 require_once '../includes/svg_icons.php';
 require_once '../includes/hospital_queries.php';
+require_once '../includes/image_paths.php';
 
 $user_id = $_SESSION['user_id'];
 
-$reviewsCommunity = [];
-try {
-    $reviewsCommunity = $conn->query("
-        SELECT r.rating, r.comment, r.created_at, u.name AS patient_name, h.hospital_name
-        FROM reviews r
-        INNER JOIN users u ON r.patient_id = u.id
-        INNER JOIN users h ON r.hospital_id = h.id AND h.role_id = 2
-        WHERE r.status = 'Approved'
-        ORDER BY r.created_at DESC
-        LIMIT 6
-    ")->fetchAll();
-} catch (Throwable $e) {
-    $reviewsCommunity = [];
-}
-
 // Fetch User Profile
-$stmt = $conn->prepare("SELECT * FROM users WHERE id = :uid");
-$stmt->bindParam(':uid', $user_id);
-$stmt->execute();
-$user = $stmt->fetch();
+$user = null;
+$res_u = mysqli_query($conn, "SELECT * FROM users WHERE id = $user_id");
+if ($res_u) {
+    $user = mysqli_fetch_assoc($res_u);
+}
 
 // Fetch Appointments and Results
 $hN = hospital_name_expr($conn);
-$stmt = $conn->prepare("
+$history = [];
+$res_h = mysqli_query($conn, "
     SELECT a.id, a.type, a.appointment_date, a.status,
            {$hN} AS hospital_name, hu.location,
            v.vaccine_name,
@@ -44,12 +32,14 @@ $stmt = $conn->prepare("
     " . hospital_join_sql($conn, 'a') . "
     LEFT JOIN vaccines v ON a.vaccine_id = v.id
     LEFT JOIN results r ON a.id = r.appointment_id
-    WHERE a.patient_id = :uid
+    WHERE a.patient_id = $user_id
     ORDER BY a.appointment_date DESC
 ");
-$stmt->bindParam(':uid', $user_id);
-$stmt->execute();
-$history = $stmt->fetchAll();
+if ($res_h) {
+    while ($row = mysqli_fetch_assoc($res_h)) {
+        $history[] = $row;
+    }
+}
 
 // Calculate some dummy stats based on history for the new UI
 $total_tests = 0;
@@ -61,8 +51,15 @@ foreach($history as $h) {
 
 include '../includes/header.php';
 ?>
+<link rel="stylesheet" href="<?php echo $base_url; ?>/assets/css/landing-pages.css">
 
 <style>
+:root {
+    --img-patient-hero: url('<?php echo $img_base; ?>patient-care.jpg');
+    --img-vax: url('<?php echo $img_base; ?>vaccination.jpg');
+    --img-test: url('<?php echo $img_base; ?>covid-test.jpg');
+    --img-doctor: url('<?php echo $img_base; ?>doctor-team.jpg');
+}
 /* ==========================================================================
    PREMIUM PATIENT DASHBOARD STYLES (Massive UI Expansion)
    ========================================================================== */
@@ -76,8 +73,8 @@ include '../includes/header.php';
 
 /* --- Hero Section with Background Image --- */
 .patient-hero {
-    /* Using a high-quality medical/health background from Unsplash */
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.9), rgba(79, 70, 229, 0.85)), url('https://images.unsplash.com/photo-1579684385127-1ef15d508118?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80') center/cover no-repeat;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.9), rgba(79, 70, 229, 0.85)), var(--img-patient-hero) center/cover no-repeat;
+    min-height: 50vh;
     background-attachment: fixed;
     border-radius: 0 0 var(--radius-xl) var(--radius-xl);
     padding: 6rem 3rem 4rem;
@@ -409,7 +406,47 @@ include '../includes/header.php';
 .guideline-card h4 .svg-icon { flex-shrink: 0; }
 .guideline-card p { opacity: 0.8; font-size: 0.95rem; line-height: 1.6; }
 
-/* --- Patient Testimonials / Reviews Section --- */
+/* --- Patient extra landing sections --- */
+.patient-extra-landing { padding: 4rem 0 2rem; }
+.patient-journey-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.75rem;
+}
+.patient-journey-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+    transition: transform 0.3s ease;
+}
+.patient-journey-card:hover { transform: translateY(-6px); }
+.pj-step {
+    display: inline-block;
+    width: 40px; height: 40px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 40px;
+    font-weight: 800;
+    margin-bottom: 1rem;
+}
+.guidelines-section {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.88), rgba(79, 70, 229, 0.8)), var(--img-doctor) center/cover !important;
+}
+.patient-trust-banner {
+    margin: 4rem 0 2rem;
+    background: linear-gradient(135deg, rgba(49, 46, 129, 0.95), rgba(79, 70, 229, 0.9)), var(--img-vax) center/cover;
+    border-radius: 24px;
+    padding: 3rem;
+    color: white;
+}
+.patient-trust-inner h3 { color: white; margin-bottom: 0.75rem; font-size: 1.75rem; }
+.patient-trust-inner p { opacity: 0.9; margin-bottom: 1.5rem; max-width: 560px; }
+
+/* --- old reviews styles (unused) --- */
 .reviews-section {
     margin-bottom: 5rem;
 }
@@ -542,9 +579,7 @@ include '../includes/header.php';
                                 <p style="font-size: 0.9rem; font-style: italic; color: var(--text-secondary); background: white; padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">"<?php echo htmlspecialchars($h['notes']); ?>"</p>
                             <?php endif; ?>
                             
-                            <a href="appointment_print.php?id=<?php echo (int) $h['id']; ?>" target="_blank" rel="noopener" class="btn-outline" style="margin-top: 1.5rem; width: 100%; padding: 0.8rem; font-size: 0.95rem; border-radius: 8px; font-weight: 700; border-width: 2px; text-align:center;">
-                                Open printable certificate
-                            </a>
+                            <!-- Slip download removed as per user request -->
                         </div>
                     <?php endif; ?>
                 </div>
@@ -586,37 +621,78 @@ include '../includes/header.php';
         </div>
     </div>
 
-    <!-- REVIEWS FROM DATABASE -->
-    <h3 class="section-title animate-fade-up delay-3">Community reviews</h3>
-    <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 2rem; max-width: 640px;">Recent feedback from patients after completed visits. <a href="review.php">Share your own review</a> after your hospital marks your appointment as completed.</p>
-    
-    <div class="reviews-section animate-fade-up delay-4">
-        <div class="reviews-grid">
-            <?php if (count($reviewsCommunity) > 0): ?>
-                <?php foreach ($reviewsCommunity as $rc): ?>
-                    <div class="review-card">
-                        <?php echo icon_star_rating((int) $rc['rating']); ?>
-                        <p class="review-text"><?php echo htmlspecialchars($rc['comment'], ENT_QUOTES, 'UTF-8'); ?></p>
-                        <div class="review-author">
-                            <div class="author-avatar" style="display:flex;align-items:center;justify-content:center;font-weight:800;background:var(--primary-light);color:var(--primary-dark);">
-                                <?php echo strtoupper(substr($rc['patient_name'], 0, 1)); ?>
-                            </div>
-                            <div class="author-info">
-                                <h5><?php echo htmlspecialchars($rc['patient_name'], ENT_QUOTES, 'UTF-8'); ?></h5>
-                                <p><?php echo htmlspecialchars($rc['hospital_name'], ENT_QUOTES, 'UTF-8'); ?></p>
-                            </div>
-                        </div>
-                        <p style="margin-top:0.75rem;font-size:0.8rem;color:var(--text-muted);"><?php echo date('M j, Y', strtotime($rc['created_at'])); ?></p>
-                    </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="review-card" style="grid-column: 1 / -1;">
-                    <p class="review-text" style="font-style: normal;">No reviews in the system yet. Complete a visit and submit feedback from the Reviews page.</p>
-                    <p style="margin-top: 1rem;"><a class="btn-primary" href="review.php">Go to reviews</a></p>
-                </div>
-            <?php endif; ?>
+    <!-- HOW PATIENT PORTAL WORKS -->
+    <section class="portal-band animate-fade-up delay-3" style="background-image: var(--img-test); margin: 3rem 0; border-radius: 24px;">
+        <div class="portal-band-inner">
+            <h3>How to use your patient dashboard</h3>
+            <p>Book → wait for approval → visit hospital → check results here. All in four simple steps.</p>
+            <div class="portal-steps-row">
+                <div class="portal-step-box"><strong>Search</strong> Find approved hospitals near you.</div>
+                <div class="portal-step-box"><strong>Book</strong> Choose test or vaccine + date.</div>
+                <div class="portal-step-box"><strong>Visit</strong> Go on your appointment day.</div>
+                <div class="portal-step-box"><strong>Results</strong> View status in Medical History above.</div>
+            </div>
+            <p style="margin-top:2rem;">
+                <a href="../how-it-works.php#for-patients" class="btn-primary">Full patient guide</a>
+                <a href="../services.php" class="btn-outline" style="margin-left:0.75rem;color:#fff;border-color:rgba(255,255,255,0.5);">Services</a>
+            </p>
         </div>
-    </div>
+    </section>
+
+    <section class="split-block animate-fade-up delay-3" style="background:var(--bg-main);">
+        <div>
+            <h3 class="section-title">What you can do right now</h3>
+            <p style="color:var(--text-secondary);line-height:1.8;font-size:1.05rem;margin-bottom:1.5rem;">Your dashboard is your health hub. Use these tools without calling the hospital.</p>
+            <ul style="line-height:2.2;color:var(--text-secondary);">
+                <li><strong>Book New Appointment</strong> — search and reserve a slot</li>
+                <li><strong>Medical History</strong> — every visit, status, and result</li>
+                <li><strong>Update Profile</strong> — phone and address for staff</li>
+                <li><strong>FAQ</strong> — answers about booking and results</li>
+            </ul>
+        </div>
+        <img src="<?php echo $img_base; ?>vaccination.jpg" alt="Vaccination care">
+    </section>
+
+    <!-- PATIENT CARE TIPS — extra landing content -->
+    <section class="patient-extra-landing animate-fade-up delay-4">
+        <h3 class="section-title">Your health journey with VaxiCare</h3>
+        <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 2.5rem; max-width: 720px;">Everything you need after booking — reminders, results, and easy re-booking at trusted hospitals.</p>
+        <div class="patient-journey-grid">
+            <div class="patient-journey-card">
+                <span class="pj-step">1</span>
+                <h4>Search hospitals</h4>
+                <p>Find approved facilities near you and compare locations before you book.</p>
+                <a href="search.php" class="btn-outline" style="margin-top:1rem;">Find hospitals</a>
+            </div>
+            <div class="patient-journey-card">
+                <span class="pj-step">2</span>
+                <h4>Book test or vaccine</h4>
+                <p>Pick COVID-19 testing or vaccination and choose an open date that works for you.</p>
+                <a href="search.php" class="btn-outline" style="margin-top:1rem;">Book now</a>
+            </div>
+            <div class="patient-journey-card">
+                <span class="pj-step">3</span>
+                <h4>Track results here</h4>
+                <p>When your visit is complete, results and vaccination status show in your history above.</p>
+            </div>
+            <div class="patient-journey-card">
+                <span class="pj-step">4</span>
+                <h4>Update your profile</h4>
+                <p>Keep phone and address current so hospitals can reach you if needed.</p>
+                <a href="profile.php" class="btn-outline" style="margin-top:1rem;">My profile</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="patient-trust-banner animate-fade-up delay-4">
+        <div class="patient-trust-inner">
+            <h3>Need help?</h3>
+            <p>Read our FAQ for booking rules, cancellation, and how hospitals update your records.</p>
+            <a href="../faq.php" class="btn-primary">Open FAQ</a>
+            <a href="../how-it-works.php" class="btn-outline" style="margin-left:0.75rem;color:#fff;border-color:rgba(255,255,255,0.5);">How it works</a>
+            <a href="../services.php" class="btn-outline" style="margin-left:0.75rem;color:#fff;border-color:rgba(255,255,255,0.5);">Services</a>
+        </div>
+    </section>
 
 </div>
 </div>

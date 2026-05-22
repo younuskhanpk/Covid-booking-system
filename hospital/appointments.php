@@ -25,43 +25,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['app
     $new_status = ($action === 'approve') ? 'Approved' : 'Rejected';
 
     try {
-        $conn->beginTransaction();
+        mysqli_begin_transaction($conn);
 
-        $stmt = $conn->prepare('UPDATE appointments SET status = :status WHERE id = :id AND hospital_id = :hid');
-        $stmt->execute([':status' => $new_status, ':id' => $appt_id, ':hid' => $hospital_id]);
+        $statusSafe = mysqli_real_escape_string($conn, $new_status);
+        mysqli_query($conn, "UPDATE appointments SET status = '$statusSafe' WHERE id = $appt_id AND hospital_id = $hospital_id");
 
         if ($new_status === 'Approved') {
-            $chk = $conn->prepare('SELECT type FROM appointments WHERE id = :id');
-            $chk->execute([':id' => $appt_id]);
-            $type = $chk->fetchColumn();
+            $res = mysqli_query($conn, "SELECT type FROM appointments WHERE id = $appt_id");
+            $row = mysqli_fetch_row($res);
+            $type = $row ? $row[0] : null;
 
             $test_res = ($type === 'Test') ? 'Pending' : null;
             $vax_stat = ($type === 'Vaccination') ? 'Not Started' : null;
 
-            $res_stmt = $conn->prepare('INSERT INTO results (appointment_id, test_result, vaccination_status) VALUES (:appt_id, :test_res, :vax_stat)');
-            $res_stmt->execute([':appt_id' => $appt_id, ':test_res' => $test_res, ':vax_stat' => $vax_stat]);
+            $testResSafe = $test_res ? "'$test_res'" : 'NULL';
+            $vaxStatSafe = $vax_stat ? "'$vax_stat'" : 'NULL';
+
+            mysqli_query($conn, "INSERT INTO results (appointment_id, test_result, vaccination_status) VALUES ($appt_id, $testResSafe, $vaxStatSafe)");
         }
 
-        $conn->commit();
+        mysqli_commit($conn);
         $message = 'Appointment ' . strtolower($new_status) . '.';
-    } catch (PDOException $e) {
-        if ($conn->inTransaction()) {
-            $conn->rollBack();
-        }
+    } catch (Exception $e) {
+        mysqli_rollback($conn);
         $message = 'Error: ' . $e->getMessage();
     }
 }
 
-$stmt = $conn->prepare("
+$appointments = [];
+$res = mysqli_query($conn, "
     SELECT a.*, u.name AS patient_name, u.phone, u.email, v.vaccine_name
     FROM appointments a
     JOIN users u ON a.patient_id = u.id
     LEFT JOIN vaccines v ON a.vaccine_id = v.id
-    WHERE a.hospital_id = :hid AND a.status IN ('Pending', 'Approved')
+    WHERE a.hospital_id = $hospital_id AND a.status IN ('Pending', 'Approved')
     ORDER BY a.appointment_date ASC
 ");
-$stmt->execute([':hid' => $hospital_id]);
-$appointments = $stmt->fetchAll();
+if ($res) {
+    while ($row = mysqli_fetch_assoc($res)) {
+        $appointments[] = $row;
+    }
+}
 
 include '../includes/header.php';
 ?>

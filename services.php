@@ -1,10 +1,18 @@
 <?php
-// services.php
+// services.php — detailed services landing page
 session_start();
+require_once 'includes/image_paths.php';
 include 'includes/header.php';
 ?>
+<link rel="stylesheet" href="<?php echo $base_url; ?>/assets/css/landing-pages.css">
 
 <style>
+:root {
+    --img-services-hero: url('<?php echo $img_base; ?>services-lab.jpg');
+    --img-test: url('<?php echo $img_base; ?>covid-test.jpg');
+    --img-vax: url('<?php echo $img_base; ?>vaccination.jpg');
+    --img-tech: url('<?php echo $img_base; ?>medical-tech.jpg');
+}
 /* ==========================================================================
    PREMIUM SERVICES PAGE STYLES
    ========================================================================== */
@@ -16,7 +24,8 @@ include 'includes/header.php';
 
 /* --- Hero Section --- */
 .services-hero {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(14, 165, 233, 0.85)), url('https://images.unsplash.com/photo-1516549655169-df83a0774514?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80') center/cover no-repeat;
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(14, 165, 233, 0.85)), var(--img-services-hero) center/cover no-repeat;
+    min-height: 75vh;
     background-attachment: fixed;
     padding: 10rem 0 8rem;
     color: white;
@@ -115,9 +124,22 @@ include 'includes/header.php';
 .service-card:hover .service-link { color: var(--accent); gap: 1rem; }
 
 /* --- Detailed Info Section --- */
+.service-photo-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    max-width: 1200px;
+    margin: 0 auto 4rem;
+    padding: 0 2rem;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.12);
+}
+.service-photo-row img { width: 100%; height: 280px; object-fit: cover; display: block; }
+
 .info-section {
     padding: 8rem 0;
-    background: linear-gradient(135deg, #0f172a, #1e293b);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.9)), var(--img-tech) center/cover;
     color: white;
 }
 
@@ -151,6 +173,7 @@ include 'includes/header.php';
     .hero-content h1 { font-size: 3rem; }
     .services-hero { clip-path: polygon(0 0, 100% 0, 100% 95%, 0 100%); padding: 8rem 2rem 6rem; }
     .services-grid { padding: 0 1rem; }
+    .service-photo-row { grid-template-columns: 1fr; }
 }
 </style>
 
@@ -166,6 +189,12 @@ include 'includes/header.php';
             <p>VaxiCare brings you a fully digital, secure, and instant way to manage your COVID-19 health requirements. Explore the services we offer to keep our community safe.</p>
         </div>
     </section>
+
+    <div class="service-photo-row reveal-section">
+        <img src="<?php echo $img_base; ?>covid-test.jpg" alt="COVID testing">
+        <img src="<?php echo $img_base; ?>vaccination.jpg" alt="Vaccination">
+        <img src="<?php echo $img_base; ?>medical-tech.jpg" alt="Digital health">
+    </div>
 
     <!-- Services Grid -->
     <section class="services-section">
@@ -231,14 +260,24 @@ include 'includes/header.php';
                 </ul>
             </div>
             <div class="info-image animate-fade-up delay-2">
-                <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Healthcare Services">
+                <img src="<?php echo $img_base; ?>medical-tech.jpg" alt="Healthcare Services">
             </div>
         </div>
     </section>
 
-    <div style="text-align: center; padding: 6rem 2rem; background: var(--bg-main);">
-        <h2 style="font-size: 2.5rem; font-weight: 900; margin-bottom: 1.5rem;">Ready to experience seamless healthcare?</h2>
-        <a href="auth/register.php" class="btn-primary" style="padding: 1.2rem 3rem; font-size: 1.2rem; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4);">Create Your Free Account Now</a>
+    <section class="bg-section-light reveal-section" style="background-image: var(--img-vax); padding: 6rem 2rem;">
+        <div class="bg-section-inner" style="text-align:center;">
+            <h2 style="font-size:2.5rem;font-weight:900;margin-bottom:1rem;">How services connect to booking</h2>
+            <p style="max-width:700px;margin:0 auto 2rem;color:var(--text-secondary);font-size:1.15rem;line-height:1.8;">Every service above uses the same simple flow: register, find a hospital, book online, and track results on your dashboard.</p>
+            <a href="how-it-works.php" class="btn-primary" style="margin-right:0.75rem;">How it works — full guide</a>
+            <a href="index.php" class="btn-outline">Back to home</a>
+        </div>
+    </section>
+
+    <div style="text-align: center; padding: 6rem 2rem; background: linear-gradient(135deg, #312e81, #4f46e5); color: white;">
+        <h2 style="font-size: 2.5rem; font-weight: 900; margin-bottom: 1.5rem; color: white;">Ready to experience seamless healthcare?</h2>
+        <p style="opacity:0.9;margin-bottom:2rem;font-size:1.15rem;">Join as patient or register your hospital today.</p>
+        <a href="auth/register.php" class="btn-primary" style="padding: 1.2rem 3rem; font-size: 1.2rem; background:white;color:var(--primary) !important;">Create Your Free Account Now</a>
     </div>
 
 </div>

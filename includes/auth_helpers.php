@@ -14,18 +14,20 @@ function role_name_from_id(int $id): string
     return $map[$id] ?? 'Patient';
 }
 
-function sync_user_role_columns(PDO $conn, int $userId): void
+function sync_user_role_columns($conn, int $userId): void
 {
-    $stmt = $conn->prepare('SELECT role_id, role FROM users WHERE id = ?');
-    $stmt->execute([$userId]);
-    $u = $stmt->fetch();
+    $userId = (int)$userId;
+    $result = mysqli_query($conn, "SELECT role_id, role FROM users WHERE id = $userId");
+    $u = mysqli_fetch_assoc($result);
     if (!$u) {
         return;
     }
     if (!empty($u['role_id']) && empty($u['role'])) {
-        $conn->prepare('UPDATE users SET role = ? WHERE id = ?')->execute([role_name_from_id((int) $u['role_id']), $userId]);
+        $roleName = mysqli_real_escape_string($conn, role_name_from_id((int) $u['role_id']));
+        mysqli_query($conn, "UPDATE users SET role = '$roleName' WHERE id = $userId");
     } elseif (!empty($u['role']) && empty($u['role_id'])) {
-        $conn->prepare('UPDATE users SET role_id = ? WHERE id = ?')->execute([role_id_from_name($u['role']), $userId]);
+        $roleId = (int)role_id_from_name($u['role']);
+        mysqli_query($conn, "UPDATE users SET role_id = $roleId WHERE id = $userId");
     }
 }
 

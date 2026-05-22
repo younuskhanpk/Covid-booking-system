@@ -17,11 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $step = 2;
         } else {
             $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-            $stmt = $conn->prepare("UPDATE users SET password = :password WHERE email = :email");
-            $stmt->bindParam(':password', $hashed_password);
-            $stmt->bindParam(':email', $email);
+            $emailSafe = mysqli_real_escape_string($conn, $email);
+            $passSafe = mysqli_real_escape_string($conn, $hashed_password);
+            $sql = "UPDATE users SET password = '$passSafe' WHERE email = '$emailSafe'";
             
-            if ($stmt->execute()) {
+            if (mysqli_query($conn, $sql)) {
                 $success = "Your password has been successfully reset. You can now log in.";
                 $step = 3;
             } else {
@@ -31,13 +31,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } else {
         $email = trim($_POST['email']);
+        $emailSafe = mysqli_real_escape_string($conn, $email);
         
         // Check if email exists
-        $stmt = $conn->prepare("SELECT id FROM users WHERE email = :email");
-        $stmt->bindParam(':email', $email);
-        $stmt->execute();
+        $result = mysqli_query($conn, "SELECT id FROM users WHERE email = '$emailSafe'");
         
-        if ($stmt->rowCount() > 0) {
+        if ($result && mysqli_num_rows($result) > 0) {
             // Email exists, proceed to reset step
             $step = 2;
         } else {

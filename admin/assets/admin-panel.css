@@ -96,8 +96,89 @@
     margin-left: 260px;
     flex: 1;
     min-height: 100vh;
-    background: #f1f5f9;
-    padding: 2rem;
+    background: linear-gradient(180deg, #e2e8f0 0%, #f1f5f9 120px, #f8fafc 100%);
+    padding: 2.5rem 3rem 4rem;
+    max-width: 100%;
+}
+
+.admin-hero-banner {
+    background: linear-gradient(135deg, #312e81 0%, #4f46e5 50%, #0ea5e9 100%);
+    color: #fff;
+    border-radius: 20px;
+    padding: 2.5rem 2.75rem;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    box-shadow: 0 20px 50px rgba(79, 70, 229, 0.35);
+}
+
+.admin-hero-banner h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2.25rem;
+    margin: 0 0 0.5rem;
+    color: #fff;
+}
+
+.admin-hero-banner p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 1.05rem;
+    max-width: 520px;
+}
+
+.admin-hero-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.admin-alert {
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    border: 1px solid;
+}
+
+.admin-alert-success { background: #ecfdf5; border-color: #a7f3d0; color: #047857; }
+.admin-alert-error { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+
+.stat-card-warn .stat-num { color: #dc2626 !important; }
+
+.admin-charts-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.admin-chart-box { min-height: 320px; }
+
+.admin-quick-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.admin-quick-links a {
+    display: block;
+    padding: 1.25rem 1.5rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    color: #4f46e5;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.25s ease;
+}
+
+.admin-quick-links a:hover {
+    background: #eef2ff;
+    border-color: #a5b4fc;
+    transform: translateY(-2px);
 }
 
 .admin-topbar h1 {
@@ -109,9 +190,9 @@
 
 .admin-stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1.25rem;
-    margin: 2rem 0;
+    margin: 0 0 2rem;
 }
 
 .stat-card-link {

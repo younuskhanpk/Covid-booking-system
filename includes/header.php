@@ -58,14 +58,13 @@ $nav_script = basename($_SERVER['SCRIPT_NAME'] ?? 'index.php');
                             <li><a href="<?php echo $base_url; ?>/patient/index.php" class="nav-item">Dashboard</a></li>
                             <li><a href="<?php echo $base_url; ?>/patient/search.php" class="nav-item">Find hospitals</a></li>
                             <li><a href="<?php echo $base_url; ?>/patient/services.php" class="nav-item">Services</a></li>
-                            <li><a href="<?php echo $base_url; ?>/patient/review.php" class="nav-item">Reviews</a></li>
                             <li><a href="<?php echo $base_url; ?>/faq.php" class="nav-item">FAQ</a></li>
                             <li><a href="<?php echo $base_url; ?>/privacy.php" class="nav-item">Privacy</a></li>
                             <li><a href="<?php echo $base_url; ?>/terms.php" class="nav-item">Terms</a></li>
                         <?php endif; ?>
                         <li><a href="<?php echo $base_url; ?>/auth/logout.php" class="btn-outline">Logout</a></li>
                     <?php else: ?>
-                        <li><a href="<?php echo $base_url; ?>/index.php#how-it-works" class="nav-item">How it Works</a></li>
+                        <li><a href="<?php echo $base_url; ?>/how-it-works.php" class="nav-item">How it Works</a></li>
                         <li><a href="<?php echo $base_url; ?>/faq.php" class="nav-item">FAQ</a></li>
                         <li><a href="<?php echo $base_url; ?>/privacy.php" class="nav-item">Privacy Policy</a></li>
                         <li><a href="<?php echo $base_url; ?>/terms.php" class="nav-item">Terms of Service</a></li>

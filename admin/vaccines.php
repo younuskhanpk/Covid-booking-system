@@ -15,13 +15,11 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] === 'add') {
     $name = trim($_POST['vaccine_name']);
     if (!empty($name)) {
-        try {
-            $stmt = $conn->prepare("INSERT INTO vaccines (vaccine_name) VALUES (:name)");
-            $stmt->bindParam(':name', $name);
-            $stmt->execute();
+        $nameSafe = mysqli_real_escape_string($conn, $name);
+        if (mysqli_query($conn, "INSERT INTO vaccines (vaccine_name) VALUES ('$nameSafe')")) {
             $message = "Vaccine '$name' added successfully to the global inventory.";
-        } catch(PDOException $e) {
-            $error = "Error: " . $e->getMessage();
+        } else {
+            $error = "Error: " . mysqli_error($conn);
         }
     } else {
         $error = "Vaccine name cannot be empty.";
@@ -30,36 +28,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
 // Handle Status Toggle
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] === 'toggle') {
-    $id = $_POST['vaccine_id'];
+    $id = (int)$_POST['vaccine_id'];
     $current = $_POST['current_status'];
     $new_status = ($current === 'Available') ? 'Out of Stock' : 'Available';
+    $statusSafe = mysqli_real_escape_string($conn, $new_status);
     
-    try {
-        $stmt = $conn->prepare("UPDATE vaccines SET availability_status = :status WHERE id = :id");
-        $stmt->bindParam(':status', $new_status);
-        $stmt->bindParam(':id', $id);
-        $stmt->execute();
+    if (mysqli_query($conn, "UPDATE vaccines SET availability_status = '$statusSafe' WHERE id = $id")) {
         $message = "Inventory status updated successfully.";
-    } catch(PDOException $e) {
-        $error = "Error: " . $e->getMessage();
+    } else {
+        $error = "Error: " . mysqli_error($conn);
     }
 }
 
-// Handle Delete Vaccine (if needed in the future, just adding UI for now, but I'll add logic too to be robust)
+// Handle Delete Vaccine
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
-    $id = $_POST['vaccine_id'];
-    try {
-        $stmt = $conn->prepare("DELETE FROM vaccines WHERE id = :id");
-        $stmt->bindParam(':id', $id);
-        $stmt->execute();
+    $id = (int)$_POST['vaccine_id'];
+    if (mysqli_query($conn, "DELETE FROM vaccines WHERE id = $id")) {
         $message = "Vaccine removed from the system.";
-    } catch(PDOException $e) {
+    } else {
         $error = "Cannot delete vaccine. It might be linked to existing records.";
     }
 }
 
 // Fetch Vaccines
-$vaccines = $conn->query("SELECT * FROM vaccines ORDER BY id DESC")->fetchAll();
+$vaccines = [];
+$res = mysqli_query($conn, "SELECT * FROM vaccines ORDER BY id DESC");
+if ($res) {
+    while ($row = mysqli_fetch_assoc($res)) {
+        $vaccines[] = $row;
+    }
+}
 
 include '../includes/header.php';
 ?>

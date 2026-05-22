@@ -29,26 +29,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['result_id'])) {
     $is_completed = false;
 
     try {
-        $conn->beginTransaction();
+        mysqli_begin_transaction($conn);
         
+        $notesSafe = mysqli_real_escape_string($conn, $notes);
+        $result_id = (int)$result_id;
+        $appointment_id = (int)$appointment_id;
+
         if ($type === 'Test') {
             $test_result = $_POST['test_result'];
-            $upd = $conn->prepare("UPDATE results SET test_result = :res, notes = :notes WHERE id = :id");
-            $upd->bindParam(':res', $test_result);
-            $upd->bindParam(':notes', $notes);
-            $upd->bindParam(':id', $result_id);
-            $upd->execute();
+            $testSafe = mysqli_real_escape_string($conn, $test_result);
+            mysqli_query($conn, "UPDATE results SET test_result = '$testSafe', notes = '$notesSafe' WHERE id = $result_id");
             
             if ($test_result === 'Positive' || $test_result === 'Negative') {
                 $is_completed = true;
             }
         } else if ($type === 'Vaccination') {
             $vax_status = $_POST['vaccination_status'];
-            $upd = $conn->prepare("UPDATE results SET vaccination_status = :stat, notes = :notes WHERE id = :id");
-            $upd->bindParam(':stat', $vax_status);
-            $upd->bindParam(':notes', $notes);
-            $upd->bindParam(':id', $result_id);
-            $upd->execute();
+            $vaxSafe = mysqli_real_escape_string($conn, $vax_status);
+            mysqli_query($conn, "UPDATE results SET vaccination_status = '$vaxSafe', notes = '$notesSafe' WHERE id = $result_id");
             
             if ($vax_status === 'Completed') {
                 $is_completed = true;
@@ -57,17 +55,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['result_id'])) {
 
         // If completed, update appointment status
         if ($is_completed) {
-            $apt_upd = $conn->prepare("UPDATE appointments SET status = 'Completed' WHERE id = :aid");
-            $apt_upd->bindParam(':aid', $appointment_id);
-            $apt_upd->execute();
+            mysqli_query($conn, "UPDATE appointments SET status = 'Completed' WHERE id = $appointment_id");
         }
         
-        $conn->commit();
+        mysqli_commit($conn);
         $message = "Medical records updated successfully.";
-    } catch(PDOException $e) {
-        if ($conn->inTransaction()) {
-            $conn->rollBack();
-        }
+    } catch(Exception $e) {
+        mysqli_rollback($conn);
         $message = "Error: " . $e->getMessage();
     }
 }
@@ -76,19 +70,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['result_id'])) {
 $selected_appt = isset($_GET['id']) ? $_GET['id'] : null;
 
 // Fetch Approved appointments that need results
-$stmt = $conn->prepare("
+$appointments = [];
+$res = mysqli_query($conn, "
     SELECT a.id as appointment_id, a.type, a.appointment_date, u.name as patient_name, 
            v.vaccine_name, r.id as result_id, r.test_result, r.vaccination_status, r.notes
     FROM appointments a 
     JOIN users u ON a.patient_id = u.id 
     JOIN results r ON a.id = r.appointment_id
     LEFT JOIN vaccines v ON a.vaccine_id = v.id
-    WHERE a.hospital_id = :hid AND a.status = 'Approved'
+    WHERE a.hospital_id = $hospital_id AND a.status = 'Approved'
     ORDER BY a.appointment_date ASC
 ");
-$stmt->bindParam(':hid', $hospital_id);
-$stmt->execute();
-$appointments = $stmt->fetchAll();
+if ($res) {
+    while ($row = mysqli_fetch_assoc($res)) {
+        $appointments[] = $row;
+    }
+}
 
 include '../includes/header.php';
 ?>

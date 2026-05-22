@@ -2,6 +2,7 @@
 // faq.php
 session_start();
 require_once __DIR__ . '/includes/svg_icons.php';
+require_once __DIR__ . '/includes/image_paths.php';
 include 'includes/header.php';
 ?>
 
@@ -17,7 +18,7 @@ include 'includes/header.php';
 }
 
 .static-hero {
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.9), rgba(79, 70, 229, 0.95)), url('https://images.unsplash.com/photo-1550831107-1553da8c8464?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80') center/cover no-repeat;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.9), rgba(79, 70, 229, 0.95)), url('<?php echo $img_base; ?>how-it-works-bg.jpg') center/cover no-repeat;
     background-attachment: fixed;
     padding: 10rem 2rem 8rem;
     color: white;
@@ -172,42 +173,6 @@ details[open] summary::after { content: '−'; transform: rotate(180deg); }
                     <summary>Can we manage multiple vaccine brands?</summary>
                     <div class="faq-content">
                         Absolutely. When updating a patient's vaccination record, the system allows you to select the specific vaccine brand administered from the globally approved inventory list managed by the Admin.
-                    </div>
-                </details>
-            </div>
-        </div>
-
-        <!-- Reviews -->
-        <div class="faq-group" id="reviews-faq">
-            <h2><?php echo icon_shield_admin(36, 36); ?> Reviews & trust</h2>
-
-            <div class="faq-item">
-                <details>
-                    <summary>When can I leave a review for a hospital?</summary>
-                    <div class="faq-content">
-                        Reviews unlock only after the hospital marks your appointment as <strong>Completed</strong> (for example after your COVID-19 test result is filed or your vaccination dose is recorded). This keeps feedback tied to real visits.
-                    </div>
-                </details>
-            </div>
-
-            <div class="faq-item">
-                <details>
-                    <summary>Where do I submit my review?</summary>
-                    <div class="faq-content">
-                        <?php if (isset($_SESSION['user_id']) && ($_SESSION['role'] ?? '') === 'Patient'): ?>
-                            Open your patient menu and choose <a href="<?php echo $base_url; ?>/patient/review.php">Reviews</a>, or go directly to the review form. You can rate each completed visit once.
-                        <?php else: ?>
-                            <a href="<?php echo $base_url; ?>/auth/login.php">Log in as a patient</a>, then open <strong>Reviews</strong> from the navigation bar to complete the short form (rating + comment).
-                        <?php endif; ?>
-                    </div>
-                </details>
-            </div>
-
-            <div class="faq-item">
-                <details>
-                    <summary>Where do public reviews appear?</summary>
-                    <div class="faq-content">
-                        Approved patient comments are listed on the <a href="<?php echo $base_url; ?>/index.php">home page</a> (community reviews), on your patient dashboard, and on the hospital’s own dashboard so facilities can see honest feedback.
                     </div>
                 </details>
             </div>

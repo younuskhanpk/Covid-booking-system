@@ -37,13 +37,12 @@ function admin_layout_start(string $title, string $active = 'dashboard'): void
         </div>
         <nav class="admin-nav">
             <a href="index.php" class="<?php echo $active === 'dashboard' ? 'active' : ''; ?>">Dashboard</a>
-            <a href="index.php#sec-hospitals">Hospitals</a>
-            <a href="index.php#sec-patients">Patients</a>
-            <a href="index.php#sec-users">All users</a>
-            <a href="index.php#sec-appointments">Bookings</a>
-            <a href="index.php#sec-reviews">Reviews</a>
-            <a href="vaccines.php">Vaccines</a>
-            <a href="export.php">Export reports</a>
+            <a href="hospitals.php" class="<?php echo $active === 'hospitals' ? 'active' : ''; ?>">Hospitals</a>
+            <a href="patients.php" class="<?php echo $active === 'patients' ? 'active' : ''; ?>">Patients</a>
+            <a href="users.php" class="<?php echo $active === 'users' ? 'active' : ''; ?>">All users</a>
+            <a href="bookings.php" class="<?php echo $active === 'bookings' ? 'active' : ''; ?>">Bookings</a>
+            <a href="vaccines.php" class="<?php echo $active === 'vaccines' ? 'active' : ''; ?>">Vaccines</a>
+            <a href="export.php" class="<?php echo $active === 'export' ? 'active' : ''; ?>">Export reports</a>
         </nav>
         <div class="admin-sidebar-foot">
             <span><?php echo htmlspecialchars($_SESSION['name'] ?? 'Admin', ENT_QUOTES, 'UTF-8'); ?></span>

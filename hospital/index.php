@@ -9,6 +9,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'Hospital') {
 require_once '../config/database.php';
 require_once '../includes/svg_icons.php';
 require_once '../includes/hospital_queries.php';
+require_once '../includes/image_paths.php';
 
 $user_id = (int) $_SESSION['user_id'];
 $hospital = fetch_hospital_account_by_user($conn, $user_id);
@@ -21,13 +22,31 @@ if (!$hospital || ($hospital['status'] ?? '') !== 'Approved') {
 
 $apptHospitalFilter = $user_id;
 
-// Get counts
-$pending_appts = $conn->query("SELECT COUNT(*) FROM appointments WHERE hospital_id = $apptHospitalFilter AND status = 'Pending'")->fetchColumn();
-$approved_appts = $conn->query("SELECT COUNT(*) FROM appointments WHERE hospital_id = $apptHospitalFilter AND status = 'Approved'")->fetchColumn();
-$completed_appts = $conn->query("SELECT COUNT(*) FROM appointments WHERE hospital_id = $apptHospitalFilter AND status = 'Completed'")->fetchColumn();
+// Handle Add Vaccine from Hospital
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_vaccine') {
+    $vname = trim($_POST['vaccine_name']);
+    if (!empty($vname)) {
+        $vnameSafe = mysqli_real_escape_string($conn, $vname);
+        mysqli_query($conn, "INSERT INTO vaccines (vaccine_name, availability_status) VALUES ('$vnameSafe', 'Available')");
+        $message = "Vaccine '$vname' added successfully.";
+    }
+}
 
-// Fetch recent completed appointments to show latest updates
-$recent_stmt = $conn->query("
+function fetchCount($conn, $sql) {
+    $res = mysqli_query($conn, $sql);
+    if ($res) {
+        $row = mysqli_fetch_row($res);
+        return (int)($row[0] ?? 0);
+    }
+    return 0;
+}
+
+$pending_appts = fetchCount($conn, "SELECT COUNT(*) FROM appointments WHERE hospital_id = $apptHospitalFilter AND status = 'Pending'");
+$approved_appts = fetchCount($conn, "SELECT COUNT(*) FROM appointments WHERE hospital_id = $apptHospitalFilter AND status = 'Approved'");
+$completed_appts = fetchCount($conn, "SELECT COUNT(*) FROM appointments WHERE hospital_id = $apptHospitalFilter AND status = 'Completed'");
+
+$recent_updates = [];
+$res_recent = mysqli_query($conn, "
     SELECT a.type, a.appointment_date, u.name as patient_name, r.test_result, r.vaccination_status
     FROM appointments a
     JOIN users u ON a.patient_id = u.id
@@ -35,22 +54,23 @@ $recent_stmt = $conn->query("
     WHERE a.hospital_id = $apptHospitalFilter AND a.status = 'Completed'
     ORDER BY r.updated_at DESC LIMIT 5
 ");
-$recent_updates = $recent_stmt->fetchAll();
-
-$reviewsRows = [];
-try {
-    $rv = $conn->prepare('SELECT r.rating, r.comment, u.name AS patient_name FROM reviews r INNER JOIN users u ON r.patient_id = u.id WHERE r.hospital_id = :hid AND r.status = \'Approved\' ORDER BY r.created_at DESC LIMIT 6');
-    $rv->bindParam(':hid', $apptHospitalFilter, PDO::PARAM_INT);
-    $rv->execute();
-    $reviewsRows = $rv->fetchAll();
-} catch (Throwable $e) {
-    $reviewsRows = [];
+if ($res_recent) {
+    while ($row = mysqli_fetch_assoc($res_recent)) {
+        $recent_updates[] = $row;
+    }
 }
 
 include '../includes/header.php';
 ?>
+<link rel="stylesheet" href="<?php echo $base_url; ?>/assets/css/landing-pages.css">
 
 <style>
+:root {
+    --img-hospital-hero: url('<?php echo $img_base; ?>hospital-building.jpg');
+    --img-clinic: url('<?php echo $img_base; ?>clinic-hall.jpg');
+    --img-vax: url('<?php echo $img_base; ?>vaccination.jpg');
+    --img-test: url('<?php echo $img_base; ?>covid-test.jpg');
+}
 /* ==========================================================================
    PREMIUM HOSPITAL DASHBOARD STYLES (Massive UI Expansion)
    ========================================================================== */
@@ -65,7 +85,8 @@ include '../includes/header.php';
 
 /* --- Hero Section with Background Image --- */
 .hospital-hero {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.85)), url('https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80') center/cover no-repeat;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.85)), var(--img-hospital-hero) center/cover no-repeat;
+    min-height: 55vh;
     background-attachment: fixed;
     border-radius: 0 0 var(--radius-xl) var(--radius-xl);
     padding: 6rem 3rem 5rem;
@@ -291,7 +312,36 @@ include '../includes/header.php';
 .progress-bar-bg { width: 100%; height: 8px; background: rgba(0,0,0,0.05); border-radius: 10px; overflow: hidden; }
 .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--primary)); border-radius: 10px; }
 
-/* --- Testimonials & Reviews --- */
+/* --- Hospital extra landing --- */
+.hospital-extra-block { padding: 3rem 0; margin-bottom: 2rem; }
+.hospital-features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.75rem;
+}
+.hospital-feature-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+}
+.hospital-feature-card h4 { margin-bottom: 0.75rem; font-size: 1.2rem; }
+.hospital-how-band {
+    margin: 3rem 0;
+    border-radius: 24px;
+    overflow: hidden;
+}
+.hospital-cta-strip {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 58, 138, 0.85)), var(--img-clinic) center/cover;
+    border-radius: 24px;
+    padding: 4rem 3rem;
+    margin-bottom: 4rem;
+    color: white;
+}
+.hospital-cta-inner h3 { color: white; margin-bottom: 0.75rem; }
+.hospital-cta-inner p { opacity: 0.85; margin-bottom: 1.25rem; }
+
 .reviews-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 5rem; }
 .review-card {
     background: white; padding: 2.5rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); border: 1px solid var(--border);
@@ -425,9 +475,22 @@ include '../includes/header.php';
             </div>
         </div>
 
-        <!-- Facility Resources (Dummy Data for UI expansion) -->
+        <!-- Facility Resources & Custom Vaccine -->
         <div>
             <h3 class="section-header">Facility Resources</h3>
+            <?php if (isset($message)): ?>
+                <div class="alert alert-success" style="background:#dcfce7;color:#16a34a;padding:1rem;margin-bottom:1rem;border-radius:8px;"><?php echo htmlspecialchars($message); ?></div>
+            <?php endif; ?>
+            <div class="panel" style="margin-bottom: 2rem;">
+                <h4 style="margin-bottom: 1rem; color: var(--primary);">Add Custom Vaccine</h4>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">Add a new vaccine to make it available for booking by patients.</p>
+                <form method="post" style="display: flex; gap: 1rem;">
+                    <input type="hidden" name="action" value="add_vaccine">
+                    <input type="text" name="vaccine_name" required placeholder="Vaccine Name" class="form-control" style="flex: 1;">
+                    <button type="submit" class="btn-primary" style="padding: 0.8rem 1.5rem; white-space: nowrap;">Add Vaccine</button>
+                </form>
+            </div>
+            
             <div class="panel">
                 <div class="resource-grid">
                     <div class="resource-item">
@@ -467,31 +530,82 @@ include '../includes/header.php';
         </div>
     </div>
 
-    <!-- PATIENT REVIEWS -->
-    <h3 class="section-header animate-fade-up delay-3">Recent Patient Feedback</h3>
-    <p style="color: var(--text-secondary); margin-bottom: 3rem;">Authentic reviews from patients who visited <?php echo htmlspecialchars($hospital['hospital_name']); ?>.</p>
-    
-    <div class="reviews-grid animate-fade-up delay-4">
-        <?php if (count($reviewsRows) > 0): ?>
-            <?php $ri = 0; foreach ($reviewsRows as $rr): $ri++; ?>
-                <div class="review-card">
-                    <?php echo icon_star_rating((int) $rr['rating']); ?>
-                    <p class="review-text"><?php echo htmlspecialchars($rr['comment'], ENT_QUOTES, 'UTF-8'); ?></p>
-                    <div class="review-author">
-                        <div class="author-avatar"><?php echo strtoupper(substr($rr['patient_name'], 0, 1)); ?></div>
-                        <div>
-                            <h5 style="margin: 0; font-size: 1rem; color: var(--text-primary);"><?php echo htmlspecialchars($rr['patient_name'], ENT_QUOTES, 'UTF-8'); ?></h5>
-                            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">Verified patient</p>
-                        </div>
-                    </div>
+    <!-- HOW YOUR HOSPITAL PORTAL WORKS -->
+    <section class="portal-band hospital-how-band animate-fade-up delay-2" style="background-image: var(--img-vax);">
+        <div class="portal-band-inner">
+            <h3>How your hospital dashboard works</h3>
+            <p>From the moment a patient books until results are filed — every step happens inside VaxiCare. No separate spreadsheets or phone confirmations.</p>
+            <div class="portal-steps-row">
+                <div class="portal-step-box">
+                    <strong>1. Patient books</strong>
+                    Request appears as Pending in your queue.
                 </div>
-            <?php endforeach; ?>
-        <?php else: ?>
-            <div class="review-card" style="grid-column: 1 / -1;">
-                <p class="review-text" style="font-style: normal;">No reviews yet for your facility. When patients complete care and submit feedback, it will show here and on the public home page.</p>
+                <div class="portal-step-box">
+                    <strong>2. You approve</strong>
+                    Open Appointments and confirm the visit date.
+                </div>
+                <div class="portal-step-box">
+                    <strong>3. Visit day</strong>
+                    Patient arrives; staff performs test or vaccination.
+                </div>
+                <div class="portal-step-box">
+                    <strong>4. File results</strong>
+                    Enter test result or vax status — patient sees it online.
+                </div>
             </div>
-        <?php endif; ?>
-    </div>
+            <p style="margin-top:2rem;"><a href="../how-it-works.php#for-hospitals" class="btn-primary">Full hospital guide</a></p>
+        </div>
+    </section>
+
+    <section class="split-block animate-fade-up delay-3" style="padding:4rem 2rem;background:white;">
+        <img src="<?php echo $img_base; ?>covid-test.jpg" alt="Testing at hospital">
+        <div>
+            <h3 class="section-header" style="margin-bottom:1rem;">Daily operations checklist</h3>
+            <ul style="line-height:2.2;color:var(--text-secondary);font-size:1.05rem;">
+                <li>Check <strong>Pending Requests</strong> each morning</li>
+                <li>Approve bookings before appointment date</li>
+                <li>Update <strong>Results</strong> same day when possible</li>
+                <li>Keep vaccine list current on Services page</li>
+                <li>Monitor completed visits in Recent Operations</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- HOSPITAL OPERATIONS — extra landing sections -->
+    <section class="hospital-extra-block animate-fade-up delay-3">
+        <h3 class="section-header">Run your facility efficiently</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 2.5rem; max-width: 700px;">Tools built for <?php echo htmlspecialchars($hospital['hospital_name'], ENT_QUOTES, 'UTF-8'); ?> — appointments, results, and daily operations in one place.</p>
+        <div class="hospital-features-grid">
+            <div class="hospital-feature-card">
+                <h4>📋 Appointment queue</h4>
+                <p>Approve pending bookings and plan staff for each day from the appointments page.</p>
+                <a href="appointments.php" class="btn-primary" style="margin-top:1rem;display:inline-block;">Open appointments</a>
+            </div>
+            <div class="hospital-feature-card">
+                <h4>🧪 Results & records</h4>
+                <p>File test results and vaccination status so patients see updates on their dashboard instantly.</p>
+                <a href="results.php" class="btn-primary" style="margin-top:1rem;display:inline-block;">Update results</a>
+            </div>
+            <div class="hospital-feature-card">
+                <h4>💉 Vaccine list</h4>
+                <p>Add vaccines your site offers and keep availability visible to patients booking online.</p>
+                <a href="services.php" class="btn-outline" style="margin-top:1rem;display:inline-block;">Manage services</a>
+            </div>
+            <div class="hospital-feature-card">
+                <h4>📊 Daily overview</h4>
+                <p>Use the stats above to track pending, approved, and completed visits at a glance.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="hospital-cta-strip animate-fade-up delay-4">
+        <div class="hospital-cta-inner">
+            <h3>Questions about the platform?</h3>
+            <p>Read FAQ and privacy policy for how patient data and bookings are handled.</p>
+            <a href="../faq.php" class="btn-primary">FAQ</a>
+            <a href="../privacy.php" class="btn-outline" style="margin-left:0.75rem;">Privacy</a>
+        </div>
+    </section>
 
 </div>
 </div>

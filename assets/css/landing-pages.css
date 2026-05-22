@@ -1,0 +1,256 @@
+/* Shared large landing / dashboard page styles — use with CSS variables for bg images */
+
+.main-landing,
+.portal-page {
+    overflow-x: hidden;
+}
+
+/* Full-width sections with background image + overlay */
+.bg-section {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    background-attachment: scroll;
+    padding: 6rem 2rem;
+    color: #fff;
+}
+
+.bg-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.88), rgba(30, 58, 138, 0.75));
+    z-index: 0;
+}
+
+.bg-section > .bg-section-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.bg-section-light {
+    background-size: cover;
+    background-position: center;
+    padding: 6rem 2rem;
+    position: relative;
+}
+
+.bg-section-light::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.92);
+    z-index: 0;
+}
+
+.bg-section-light > .bg-section-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Detailed step timeline */
+.timeline-detailed {
+    max-width: 900px;
+    margin: 3rem auto 0;
+    padding: 0 1rem;
+}
+
+.timeline-item {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    padding-bottom: 3rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.timeline-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.timeline-num {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    font-weight: 900;
+    flex-shrink: 0;
+}
+
+.timeline-item h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+}
+
+.timeline-item p {
+    color: var(--text-secondary);
+    line-height: 1.75;
+    font-size: 1.05rem;
+    margin: 0 0 1rem;
+}
+
+.timeline-item ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+/* Image + text split blocks */
+.split-block {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 5rem 2rem;
+}
+
+.split-block img {
+    width: 100%;
+    height: 420px;
+    object-fit: cover;
+    border-radius: 24px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+.split-block.reverse {
+    direction: rtl;
+}
+
+.split-block.reverse > * {
+    direction: ltr;
+}
+
+/* Feature cards with top image */
+.card-with-photo {
+    border-radius: 20px;
+    overflow: hidden;
+    background: white;
+    border: 1px solid var(--border);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+    transition: transform 0.35s ease;
+}
+
+.card-with-photo:hover {
+    transform: translateY(-10px);
+}
+
+.card-with-photo img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.card-with-photo .card-body {
+    padding: 2rem;
+}
+
+.card-with-photo h3 {
+    font-size: 1.35rem;
+    margin-bottom: 0.75rem;
+}
+
+.card-with-photo p {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin: 0;
+}
+
+.photo-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 3rem auto 0;
+    padding: 0 2rem;
+}
+
+/* Portal dashboard extra bands */
+.portal-band {
+    margin: 4rem 0;
+    padding: 5rem 2rem;
+    border-radius: 24px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.portal-band::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(79, 70, 229, 0.85));
+}
+
+.portal-band-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    color: white;
+}
+
+.portal-band h3 {
+    font-size: 2.25rem;
+    color: white;
+    margin-bottom: 1rem;
+}
+
+.portal-band p {
+    opacity: 0.9;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    max-width: 700px;
+}
+
+.portal-steps-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+}
+
+.portal-step-box {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 1.75rem;
+    backdrop-filter: blur(8px);
+}
+
+.portal-step-box strong {
+    display: block;
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+@media (max-width: 900px) {
+    .split-block {
+        grid-template-columns: 1fr;
+    }
+    .split-block.reverse {
+        direction: ltr;
+    }
+    .split-block img {
+        height: 280px;
+    }
+    .timeline-item {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
